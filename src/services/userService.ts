@@ -2,6 +2,7 @@ import api from './api';
 
 export interface IUserProfile {
     id: string;
+    _id?: string; // MongoDB ID
     username: string;
     email: string;
     displayName?: string;

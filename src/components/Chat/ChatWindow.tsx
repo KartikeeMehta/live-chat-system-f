@@ -93,8 +93,8 @@ const ChatWindow: React.FC<Props> = ({ conversation, currentUserId }) => {
     if (!input.trim()) return;
 
     try {
-      const newMessage = await chatService.sendMessage(conversation._id, input);
-      setMessages((prev) => [...prev, newMessage]);
+      await chatService.sendMessage(conversation._id, input);
+      // Don't add to messages here - socket 'message:new' listener will handle it
       setInput('');
       scrollToBottom();
     } catch (err) {
