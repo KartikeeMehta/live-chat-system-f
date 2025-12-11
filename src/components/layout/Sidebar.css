@@ -49,9 +49,19 @@
     pointer-events: auto;
 }
 
-/* Desktop: Always visible styling if used as persistent sidebar */
-@media (min-width: 1024px) {
-    /* If we want a persistent sidebar, we'd add a class for it. 
-       For now, let's keep it responsive-drawer style or controllable by parent. 
-       Usually Dashboard has a persistent sidebar. */
+/* Desktop: Always visible, no overlay */
+@media (min-width: 769px) {
+    .sidebar {
+        transform: translateX(0);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .sidebar-overlay {
+        display: none;
+    }
+    
+    .sidebar-header {
+        display: none; /* Hide close button on desktop */
+    }
 }
