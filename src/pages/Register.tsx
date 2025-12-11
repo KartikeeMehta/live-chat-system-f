@@ -29,7 +29,7 @@ const Register = () => {
   };
 
   return (
-    <AuthLayout title="reate an Account" subtitle="Get started with ChatApp">
+    <AuthLayout title="Create an Account" subtitle="Get started with ChatApp">
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <Input
           label="Username"
