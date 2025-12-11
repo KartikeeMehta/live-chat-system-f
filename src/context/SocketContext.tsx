@@ -17,8 +17,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (isAuthenticated) {
       const token = localStorage.getItem('accessToken');
+      const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://live-chat-system-b.onrender.com';
       
-      const newSocket = io('http://localhost:4000', {
+      const newSocket = io(SOCKET_URL, {
         auth: { token },
         transports: ['websocket'], // Force WebSocket (optional but robust)
       });
