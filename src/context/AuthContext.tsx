@@ -33,8 +33,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthToken(token);
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
+      
+      // Request browser notification permission
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
     }
     setIsLoading(false);
+  }, []);
+
+  // Add API interceptor to handle token expiry
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          // Token expired or invalid
+          console.log('Token expired, logging out...');
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      api.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -45,26 +69,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
     setIsAuthenticated(true);
+    
+    // Request browser notification permission on login
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   };
 
   const register = async (email: string, username: string, password: string) => {
-      const response = await api.post('/auth/register', { email, username, password });
-      const { accessToken, user } = response.data;
-      setAuthToken(accessToken);
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      setIsAuthenticated(true);
+    const response = await api.post('/auth/register', { email, username, password });
+    const { accessToken, user } = response.data;
+    setAuthToken(accessToken);
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
+    setIsAuthenticated(true);
+    
+    // Request browser notification permission on register
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   };
 
   const logout = () => {
-    setAuthToken(null);
+    setAuthToken('');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
-    // Force reload or redirect could be handled here or by component
-    window.location.href = '/login';
   };
 
   return (
@@ -76,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { userService, type IUserProfile } from '../services/userService';
 import { AppLayout } from '../layouts/AppLayout';
 import { Card } from '../components/ui/Card';
@@ -45,12 +46,37 @@ const ProfileSettings: React.FC = () => {
         loadProfile();
     };
 
-    if (!profile) return <div>Loading...</div>;
+    if (!profile) return (
+        <AppLayout>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px', flexDirection: 'column', gap: '1rem' }}>
+                <div className="spinner" style={{
+                    width: '48px',
+                    height: '48px',
+                    border: '4px solid var(--muted)',
+                    borderTop: '4px solid var(--primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }}></div>
+                <p style={{ color: 'var(--muted-foreground)' }}>Loading profile...</p>
+                <style>{`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        </AppLayout>
+    );
 
     return (
         <AppLayout>
             <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-                <h2>Profile & Settings</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                    <Link to="/dashboard" style={{ textDecoration: 'none' }}>
+                        <Button variant="ghost">← Back</Button>
+                    </Link>
+                    <h2 style={{ margin: 0 }}>Profile & Settings</h2>
+                </div>
                 
                 <Card style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
                     <h3>Your User ID</h3>

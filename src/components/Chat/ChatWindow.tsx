@@ -35,6 +35,18 @@ const ChatWindow: React.FC<Props> = ({ conversation, currentUserId }) => {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
         chatService.markAsRead(conversation._id);
+        
+        // Show browser notification if message is from someone else and window is not focused
+        if (message.senderId !== currentUserId && document.hidden) {
+          if ('Notification' in window && Notification.permission === 'granted') {
+            const senderName = conversation.participants.find(p => p.userId === message.senderId)?.userId || 'Someone';
+            new Notification(`New message from ${senderName}`, {
+              body: message.content,
+              icon: '/favicon.png',
+              tag: conversation._id
+            });
+          }
+        }
       }
     };
     

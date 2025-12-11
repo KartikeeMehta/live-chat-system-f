@@ -60,7 +60,7 @@ const Dashboard = () => {
                 )}
             </div>
             
-            <Link to="/profile"><Button variant="ghost">Settings</Button></Link>
+            <Link to="/profile"><Button variant="ghost">Profile</Button></Link>
             <Button variant="outline" onClick={logout}>Logout</Button>
         </div>
     );
