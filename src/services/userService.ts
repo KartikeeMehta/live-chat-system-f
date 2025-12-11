@@ -31,5 +31,10 @@ export const userService = {
 
     unblockUser: async (userIdToUnblock: string) => {
         await api.post('/users/unblock', { userIdToUnblock });
+    },
+
+    findUserByEmail: async (email: string) => {
+        const response = await api.get<{ id: string; email: string; username: string }>(`/users/by-email/${encodeURIComponent(email)}`);
+        return response.data;
     }
 };

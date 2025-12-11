@@ -18,6 +18,7 @@ import Blog from './pages/Blog';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Security from './pages/Security';
+import VerifyEmail from './pages/VerifyEmail';
 import { SocketProvider } from './context/SocketContext';
 import { useEffect } from 'react';
 
@@ -47,6 +48,7 @@ function App() {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/security" element={<Security />} />
+              <Route path="/verify-email/:token" element={<VerifyEmail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route element={<ProtectedRoute />}>

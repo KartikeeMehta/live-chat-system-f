@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import api from '../services/api';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess('');
     try {
-      await register(email, username, password);
-      navigate('/dashboard');
+      const response = await api.post('/auth/register', { email, username, password });
+      setSuccess(response.data.message || 'Registration successful! Please check your email to verify your account.');
+      // Clear form
+      setUsername('');
+      setEmail('');
+      setPassword('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -56,6 +60,7 @@ const Register = () => {
           placeholder="••••••••"
         />
         
+        {success && <p style={{ color: '#10b981', fontSize: '0.875rem', background: '#d1fae5', padding: '0.75rem', borderRadius: '6px' }}>{success}</p>}
         {error && <p style={{ color: 'var(--destructive)', fontSize: '0.875rem' }}>{error}</p>}
         
         <Button type="submit" isLoading={isLoading} style={{ width: '100%' }}>Sign Up</Button>

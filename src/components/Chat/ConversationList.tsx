@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { chatService } from '../../services/chatService';
+import { userService } from '../../services/userService';
 import { useSocket } from '../../context/SocketContext';
 import type { IConversation } from '../../services/chatService';
 import { Avatar } from '../ui/Avatar';
@@ -14,6 +15,7 @@ interface Props {
 
 const ConversationList: React.FC<Props> = ({ onSelectConversation, activeConversationId, className = '' }) => {
   const [conversations, setConversations] = useState<IConversation[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const { socket } = useSocket();
 
   useEffect(() => {
@@ -39,13 +41,21 @@ const ConversationList: React.FC<Props> = ({ onSelectConversation, activeConvers
                 }
                 return prev;
             });
+            
+            // Increment unread count if not active conversation
+            if (msg.conversationId !== activeConversationId) {
+                setUnreadCounts(prev => ({
+                    ...prev,
+                    [msg.conversationId]: (prev[msg.conversationId] || 0) + 1
+                }));
+            }
         });
     }
     
     return () => {
         if (socket) socket.off('message:new');
     };
-  }, [socket]);
+  }, [socket, activeConversationId]);
 
   const loadConversations = async () => {
     try {
@@ -73,14 +83,21 @@ const ConversationList: React.FC<Props> = ({ onSelectConversation, activeConvers
   };
 
   const createDM = async () => {
-      const id = prompt('Enter User ID to chat with:');
-      if (id) {
+      const email = prompt('Enter email address to chat with:');
+      if (email) {
           try {
-            const convo = await chatService.createConversation(id);
+            // First, find user by email
+            const user = await userService.findUserByEmail(email);
+            // Then create conversation with their ID
+            const convo = await chatService.createConversation(user.id);
             setConversations([convo, ...conversations]);
             onSelectConversation(convo);
-          } catch(err) {
-              alert('Failed to create DM');
+          } catch(err: any) {
+              if (err.response?.status === 404) {
+                  alert('User not found with that email address');
+              } else {
+                  alert('Failed to create DM');
+              }
           }
       }
   };
@@ -100,11 +117,17 @@ const ConversationList: React.FC<Props> = ({ onSelectConversation, activeConvers
           </div>
       )}
 
-      {conversations.map((c) => (
+      {conversations.map((c) => {
+        const unreadCount = unreadCounts[c._id] || 0;
+        return (
         <div
           key={c._id}
           className={`conversation-item ${activeConversationId === c._id ? 'active' : ''}`}
-          onClick={() => onSelectConversation(c)}
+          onClick={() => {
+            onSelectConversation(c);
+            // Clear unread count when selecting conversation
+            setUnreadCounts(prev => ({ ...prev, [c._id]: 0 }));
+          }}
         >
           <Avatar 
             fallback={c.name ? c.name[0] : (c.type === 'group' ? 'G' : 'U')} 
@@ -134,8 +157,24 @@ const ConversationList: React.FC<Props> = ({ onSelectConversation, activeConvers
                 )}
             </div>
           </div>
+          
+          {unreadCount > 0 && (
+            <div style={{
+              background: 'var(--primary)',
+              color: 'white',
+              borderRadius: '12px',
+              padding: '0.25rem 0.5rem',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              minWidth: '20px',
+              textAlign: 'center',
+              marginLeft: 'auto'
+            }}>
+              {unreadCount}
+            </div>
+          )}
         </div>
-      ))}
+      )})}
     </div>
   );
 };

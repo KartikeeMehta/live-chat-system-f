@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { IConversation } from '../services/chatService';
 import { chatService } from '../services/chatService';
@@ -12,6 +12,7 @@ const Dashboard = () => {
     const { user, logout } = useAuth();
     // const { isConnected } = useSocket(); // Unused
     const [activeConversation, setActiveConversation] = useState<IConversation | undefined>();
+    const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
     // Notification State
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -22,6 +23,32 @@ const Dashboard = () => {
             chatService.getNotifications().then(setNotifications);
         }
     }, [showNotifications]);
+
+    // Check notification permission on mount
+    useEffect(() => {
+        console.log('🔔 Notification permission:', Notification.permission);
+        if ('Notification' in window && Notification.permission === 'default') {
+            setShowNotificationPrompt(true);
+        }
+    }, []);
+
+    const requestNotificationPermission = async () => {
+        if ('Notification' in window) {
+            console.log('📱 Requesting notification permission...');
+            const permission = await Notification.requestPermission();
+            console.log('📱 Permission result:', permission);
+            if (permission === 'granted') {
+                setShowNotificationPrompt(false);
+                // Test notification
+                new Notification('ChatApp Notifications Enabled!', {
+                    body: 'You will now receive notifications for new messages',
+                    icon: '/favicon.png'
+                });
+            } else if (permission === 'denied') {
+                alert('Notifications blocked. Please enable them in your browser settings.');
+            }
+        }
+    };
 
     // Header Actions
     const HeaderActions = (
@@ -52,10 +79,6 @@ const Dashboard = () => {
                                 ))}
                              </ul>
                         )}
-                         <Button size="sm" variant="ghost" className="w-full" style={{marginTop:'5px'}} onClick={() => {
-                             const ids = notifications.filter(n => !n.isRead).map(n => n._id);
-                             if(ids.length) chatService.markNotificationsRead(ids).then(() => chatService.getNotifications().then(setNotifications));
-                         }}>Mark Read</Button>
                     </div>
                 )}
             </div>
@@ -79,36 +102,54 @@ const Dashboard = () => {
          </div>
     );
 
-    if (!user) return null;
-
     return (
-        <AppLayout headerActions={HeaderActions} sidebarContent={SidebarContent}>
-             <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-                 {/* Desktop Sidebar (Visible on large screens) */}
-                 <div className="desktop-sidebar" style={{ 
-                     width: '300px', borderRight: '1px solid var(--border)', 
-                     background: 'var(--muted)', display: 'none', flexDirection: 'column', padding: '1rem' 
-                 }}>
-                     {SidebarContent}
-                 </div>
-
-                 {/* Main Chat Area */}
-                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
-                     {activeConversation ? (
-                         <ChatWindow conversation={activeConversation} currentUserId={user.id} />
-                     ) : (
-                         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', color: 'var(--muted-foreground)' }}>
-                             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
-                             <h3>Select a conversation to start chatting</h3>
-                         </div>
-                     )}
-                 </div>
-             </div>
-             <style>{`
-                @media (min-width: 1024px) {
-                    .desktop-sidebar { display: flex !important; }
-                }
-             `}</style>
+        <AppLayout sidebarContent={SidebarContent} headerActions={HeaderActions}>
+            {showNotificationPrompt && (
+                <div style={{
+                    background: 'linear-gradient(135deg, var(--primary), #32B8C6)',
+                    color: 'white',
+                    padding: '1rem 1.5rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    borderRadius: '8px',
+                    margin: '1rem',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }}>
+                    <div>
+                        <strong>Enable Notifications</strong>
+                        <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: '0.25rem 0 0 0' }}>
+                            Get notified when you receive new messages
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Button onClick={requestNotificationPermission} style={{ background: 'white', color: 'var(--primary)' }}>
+                            Enable
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowNotificationPrompt(false)} style={{ color: 'white' }}>
+                            Later
+                        </Button>
+                    </div>
+                </div>
+            )}
+            
+            {activeConversation ? (
+                <ChatWindow conversation={activeConversation} currentUserId={user?.id || ''} />
+            ) : (
+                <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%',
+                    color: 'var(--muted-foreground)',
+                    gap: '1rem'
+                }}>
+                    <div style={{ fontSize: '4rem' }}>💬</div>
+                    <h3>Select a conversation to start chatting</h3>
+                    <p style={{ fontSize: '0.9rem' }}>Choose a conversation from the sidebar or create a new one</p>
+                </div>
+            )}
         </AppLayout>
     );
 };

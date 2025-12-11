@@ -37,14 +37,23 @@ const ChatWindow: React.FC<Props> = ({ conversation, currentUserId }) => {
         chatService.markAsRead(conversation._id);
         
         // Show browser notification if message is from someone else and window is not focused
+        console.log('💬 New message:', {
+          fromMe: message.senderId === currentUserId,
+          hidden: document.hidden,
+          permission: Notification.permission
+        });
+        
         if (message.senderId !== currentUserId && document.hidden) {
           if ('Notification' in window && Notification.permission === 'granted') {
             const senderName = conversation.participants.find(p => p.userId === message.senderId)?.userId || 'Someone';
+            console.log('🔔 Showing notification from:', senderName);
             new Notification(`New message from ${senderName}`, {
               body: message.content,
               icon: '/favicon.png',
               tag: conversation._id
             });
+          } else {
+            console.log('❌ Cannot show notification. Permission:', Notification.permission);
           }
         }
       }
