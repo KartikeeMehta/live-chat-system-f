@@ -1,0 +1,20 @@
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--background);
+}
+
+.app-main {
+    flex: 1;
+    overflow: hidden; /* Prevent scrolling body if chat window scrolls */
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+    /* If we want a persistent sidebar on desktop, we might need a different layout structure 
+       where Sidebar is separate from the mobile drawer.
+       For now, let's assume the Dashboard page creates its own specific layout structure 
+       or we enhance AppLayout to support persistent Sidebar. */
+}
